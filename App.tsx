@@ -79,26 +79,24 @@ const App: React.FC = () => {
       </div>
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
-        <header className="h-16 md:h-20 glass flex-shrink-0 z-40 flex items-center justify-between px-4 md:px-10 border-b border-slate-200/50 shadow-sm">
-          {/* Mobile Only: Small Brand */}
-          <div className="md:hidden flex items-center space-x-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-rose-500 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-indigo-100">R</div>
-            <h2 className="text-sm font-black text-slate-800 tracking-tight truncate max-w-[120px]">{getActiveTabTitle()}</h2>
-          </div>
-
-          {/* Page Title - Desktop */}
-          <div className="hidden md:block">
-            <h2 className="text-lg font-black text-slate-800 tracking-tight">{getActiveTabTitle()}</h2>
+        <header className="h-16 md:h-20 glass flex-shrink-0 z-40 flex items-center justify-between px-3 md:px-10 border-b border-slate-200/50 shadow-sm">
+          {/* Brand/Title Section */}
+          <div className="flex items-center space-x-2 min-w-0 flex-shrink">
+            <div className="md:hidden flex-shrink-0 w-8 h-8 bg-gradient-to-br from-indigo-600 to-rose-500 rounded-lg flex items-center justify-center text-white font-black text-xs shadow-md">R</div>
+            <h2 className="text-sm md:text-lg font-black text-slate-800 tracking-tight truncate">
+              {getActiveTabTitle()}
+            </h2>
           </div>
           
-          <div className="flex items-center space-x-3">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] md:text-xs font-black text-slate-800 tracking-tight truncate max-w-[80px] md:max-w-none">{currentUser.name}</span>
+          {/* User Section */}
+          <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0 ml-2">
+            <div className="flex flex-col items-end min-w-0">
+              <span className="text-[10px] md:text-xs font-black text-slate-800 tracking-tight truncate max-w-[70px] md:max-w-none">{currentUser.name}</span>
               <span className="text-[8px] md:text-[9px] font-black text-indigo-500 uppercase tracking-tighter">Student</span>
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 text-slate-400 hover:text-rose-500 transition-colors bg-white rounded-lg border border-slate-100 shadow-sm"
+              className="p-1.5 md:p-2 text-slate-400 hover:text-rose-500 transition-colors bg-white rounded-lg border border-slate-100 shadow-sm"
               title="Logout"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -107,13 +105,13 @@ const App: React.FC = () => {
         </header>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-          <div className="p-4 md:p-8 lg:p-12 max-w-[1400px] mx-auto w-full pb-32 md:pb-12">
+          <div className="p-4 md:p-8 lg:p-12 max-w-[1400px] mx-auto w-full pb-28 md:pb-12">
             {renderContent()}
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-2xl flex justify-around items-center px-2 z-50">
+        {/* Mobile Navigation - Enhanced for Real Devices */}
+        <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.15)] rounded-2xl flex justify-around items-center px-1 z-50">
           {[
             { id: AppTab.COACH, icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', label: 'Home' },
             { id: AppTab.RESEARCH, icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', label: 'Search' },
@@ -128,12 +126,12 @@ const App: React.FC = () => {
                 activeTab === item.id ? 'text-indigo-600' : 'text-slate-400'
               }`}
             >
-              <svg className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === item.id ? 'scale-110' : 'scale-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 mb-1 transition-transform ${activeTab === item.id ? 'scale-110' : 'scale-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeTab === item.id ? 2.5 : 2} d={item.icon} />
               </svg>
-              <span className="text-[8px] font-bold uppercase tracking-tighter">{item.label}</span>
+              <span className="text-[8px] font-black uppercase tracking-tighter leading-none">{item.label}</span>
               {activeTab === item.id && (
-                <div className="absolute -bottom-1 w-1 h-1 bg-indigo-600 rounded-full"></div>
+                <div className="absolute bottom-1.5 w-1 h-1 bg-indigo-600 rounded-full"></div>
               )}
             </button>
           ))}
