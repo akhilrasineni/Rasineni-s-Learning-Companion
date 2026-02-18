@@ -179,7 +179,7 @@ export const generateExplanation = async (query: string): Promise<GenerateConten
   const ai = getClient();
   return await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: [{ role: 'user', parts: [{ text: query }] }],
+    contents: query,
     config: {
       tools: [{ googleSearch: {} }],
     },

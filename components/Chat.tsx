@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { generateExplanation } from '../services/gemini';
 import { ChatMessage } from '../types';
@@ -26,13 +25,14 @@ const Chat: React.FC = () => {
     try {
       const response = await generateExplanation(input);
       
-      // Safety check for response.text
-      const responseText = response.text || "I found some information, but I couldn't summarize it properly. Please try rephrasing.";
+      const responseText = response.text || "I processed your request, but I couldn't generate a text summary. Please see the sources below.";
       
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      const sources = chunks?.map((chunk: any) => ({
-        web: { uri: chunk.web?.uri || '', title: chunk.web?.title || 'Source' }
-      })).filter((s: any) => s.web.uri) || [];
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      const sources = chunks
+        .filter((chunk: any) => chunk.web && chunk.web.uri)
+        .map((chunk: any) => ({
+          web: { uri: chunk.web.uri, title: chunk.web.title || 'Source' }
+        }));
 
       const modelMsg: ChatMessage = {
         role: 'model',
@@ -42,12 +42,11 @@ const Chat: React.FC = () => {
       };
       setMessages(prev => [...prev, modelMsg]);
     } catch (error: any) {
-      // Log full error details for debugging (visible in browser inspect console)
       console.error('AI Research Error Details:', error);
       
       const errorMessage = error?.message?.includes('API_KEY') 
-        ? "The API key is missing or invalid. Please check your environment variables." 
-        : "I encountered an error while searching for the answer. Please check your connection or try again in a moment.";
+        ? "The API key is missing or invalid. Please check your hosting environment variables." 
+        : `An error occurred: ${error.message || "I encountered an error while searching. Please try again later."}`;
 
       const errorMsg: ChatMessage = {
         role: 'model',
