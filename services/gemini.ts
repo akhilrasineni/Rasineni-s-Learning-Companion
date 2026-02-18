@@ -1,7 +1,13 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 
-const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const getClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("Gemini API Key is missing. Please set API_KEY in your environment variables.");
+  }
+  return new GoogleGenAI({ apiKey: apiKey || '' });
+};
 
 export function decodeBase64(base64: string) {
   const binaryString = atob(base64);
@@ -49,7 +55,6 @@ export const generateRoadmap = async (topic: string, days: number, level: string
     Ensure tasks are actionable and include specific sub-topics. 
     For each day, include 2-3 high-quality educational resource names and example URLs (like official documentation or major learning platforms) related to that day's theme.`,
     config: {
-      // NOTE: Removed googleSearch tool as it conflicts with responseSchema for JSON output reliability.
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -208,7 +213,7 @@ export const generateVisualConcept = async (concept: string) => {
 };
 
 export const generateVideoLesson = async (prompt: string, onStatus: (msg: string) => void) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = getClient();
   onStatus("Initiating video generation pipeline...");
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
