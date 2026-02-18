@@ -25,13 +25,14 @@ const Chat: React.FC = () => {
     try {
       const response = await generateExplanation(input);
       
-      const responseText = response.text || "I processed your request, but I couldn't generate a text summary. Please see the sources below.";
+      const responseText = response.text || "I found some information, but I couldn't summarize it into text. Please check the sources below.";
       
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+      const chunks = groundingMetadata?.groundingChunks || [];
       const sources = chunks
         .filter((chunk: any) => chunk.web && chunk.web.uri)
         .map((chunk: any) => ({
-          web: { uri: chunk.web.uri, title: chunk.web.title || 'Source' }
+          web: { uri: chunk.web.uri, title: chunk.web.title || 'Verified Source' }
         }));
 
       const modelMsg: ChatMessage = {
@@ -42,15 +43,10 @@ const Chat: React.FC = () => {
       };
       setMessages(prev => [...prev, modelMsg]);
     } catch (error: any) {
-      console.error('AI Research Error Details:', error);
-      
-      const errorMessage = error?.message?.includes('API_KEY') 
-        ? "The API key is missing or invalid. Please check your hosting environment variables." 
-        : `An error occurred: ${error.message || "I encountered an error while searching. Please try again later."}`;
-
+      console.error('AI Research Error:', error);
       const errorMsg: ChatMessage = {
         role: 'model',
-        text: errorMessage,
+        text: `Error: ${error.message || "I'm having trouble connecting to the research database right now. Please try again."}`,
         timestamp: Date.now()
       };
       setMessages(prev => [...prev, errorMsg]);
