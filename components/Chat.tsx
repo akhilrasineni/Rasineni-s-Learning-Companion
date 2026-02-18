@@ -44,9 +44,18 @@ const Chat: React.FC = () => {
       setMessages(prev => [...prev, modelMsg]);
     } catch (error: any) {
       console.error('AI Research Error:', error);
+      
+      let displayMessage = "I'm having trouble connecting to the research database right now.";
+      
+      if (error?.message?.includes('429') || error?.message?.includes('quota')) {
+        displayMessage = "Research limit exceeded for today. Please wait a few minutes or try again later (API Quota Exhausted).";
+      } else if (error?.message) {
+        displayMessage = `Error: ${error.message}`;
+      }
+
       const errorMsg: ChatMessage = {
         role: 'model',
-        text: `Error: ${error.message || "I'm having trouble connecting to the research database right now. Please try again."}`,
+        text: displayMessage,
         timestamp: Date.now()
       };
       setMessages(prev => [...prev, errorMsg]);
