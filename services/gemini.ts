@@ -47,9 +47,9 @@ export const generateRoadmap = async (topic: string, days: number, level: string
     model: 'gemini-3-flash-preview',
     contents: `Act as a world-class educational strategist. Create a structured ${days}-day learning roadmap for a ${level} level student on the topic: "${topic}". The student has ${time} daily. 
     Ensure tasks are actionable and include specific sub-topics. 
-    For each day, find and include 2-3 high-quality educational resource URLs (e.g. documentation, video tutorials, or articles) related to that day's theme.`,
+    For each day, include 2-3 high-quality educational resource names and example URLs (like official documentation or major learning platforms) related to that day's theme.`,
     config: {
-      tools: [{ googleSearch: {} }],
+      // NOTE: Removed googleSearch tool as it conflicts with responseSchema for JSON output reliability.
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -86,7 +86,16 @@ export const generateRoadmap = async (topic: string, days: number, level: string
       }
     }
   });
-  return JSON.parse(response.text || '{}');
+  
+  const text = response.text || '';
+  if (!text) throw new Error("Empty response from AI strategist.");
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Failed to parse roadmap JSON:", text);
+    throw new Error("The AI provided an invalid data format. Please try again.");
+  }
 };
 
 export const explainConcept = async (topic: string): Promise<GenerateContentResponse> => {

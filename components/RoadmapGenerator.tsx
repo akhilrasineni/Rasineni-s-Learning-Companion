@@ -12,11 +12,12 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ user }) => {
   const [form, setForm] = useState({ topic: '', days: 7, level: 'Beginner', time: '1 hour' });
   const [activeRoadmap, setActiveRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [completedDays, setCompletedDays] = useState<number[]>([]);
 
   useEffect(() => {
     const roadmaps = Object.values(user.roadmaps) as RoadmapProgress[];
-    const latest = roadmaps.pop();
+    const latest = roadmaps[roadmaps.length - 1];
     if (latest) {
       setActiveRoadmap(latest.roadmap);
       setCompletedDays(latest.completedDays);
@@ -30,13 +31,15 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ user }) => {
     e.preventDefault();
     if (!form.topic) return;
     setLoading(true);
+    setError(null);
     try {
       const data = await generateRoadmap(form.topic, form.days, form.level, form.time);
       setActiveRoadmap(data);
       saveRoadmapForUser(user.name, data);
       setCompletedDays([]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "Something went wrong while designing your roadmap.");
     } finally {
       setLoading(false);
     }
@@ -167,7 +170,19 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ user }) => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-[4rem] p-10 md:p-20 shadow-[0_48px_96px_-16px_rgba(0,0,0,0.12)] border border-slate-100 space-y-12">
+      <form onSubmit={handleSubmit} className="bg-white rounded-[4rem] p-10 md:p-20 shadow-[0_48px_96px_-16px_rgba(0,0,0,0.12)] border border-slate-100 space-y-12 relative overflow-hidden">
+        {error && (
+          <div className="bg-rose-50 border border-rose-100 p-6 rounded-2xl flex items-center space-x-4 animate-fade-in mb-8">
+            <div className="p-3 bg-rose-500 text-white rounded-xl shadow-lg">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div>
+              <p className="font-black text-rose-600 uppercase text-[10px] tracking-widest">Mission Briefing Error</p>
+              <p className="text-rose-800 font-medium">{error}</p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <label className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Mission Objective</label>
           <input
@@ -200,9 +215,9 @@ const RoadmapGenerator: React.FC<RoadmapGeneratorProps> = ({ user }) => {
               onChange={(e) => setForm({ ...form, level: e.target.value })}
               className="w-full px-8 py-8 rounded-[2rem] bg-slate-50 border-4 border-transparent focus:border-indigo-600 focus:bg-white outline-none transition-all font-bold text-xl shadow-inner appearance-none cursor-pointer"
             >
-              <option>Beginner (Curious)</option>
-              <option>Intermediate (Practitioner)</option>
-              <option>Expert (Researcher)</option>
+              <option value="Beginner">Beginner (Curious)</option>
+              <option value="Intermediate">Intermediate (Practitioner)</option>
+              <option value="Expert">Expert (Researcher)</option>
             </select>
           </div>
         </div>
