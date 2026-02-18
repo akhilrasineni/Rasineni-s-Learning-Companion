@@ -3,9 +3,10 @@ import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 const getClient = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    console.error("Gemini API Key is missing. Check your environment variables.");
+    console.error("CRITICAL: Gemini API Key is missing. The app will not function correctly. Please add API_KEY to your Vercel Environment Variables.");
+    return null;
   }
-  return new GoogleGenAI({ apiKey: apiKey || '' });
+  return new GoogleGenAI({ apiKey });
 };
 
 export function decodeBase64(base64: string) {
@@ -48,6 +49,8 @@ export async function decodeAudioData(
 
 export const generateRoadmap = async (topic: string, days: number, level: string, time: string) => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing. Deployment configuration required.");
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `Act as a world-class educational strategist. Create a structured ${days}-day learning roadmap for a ${level} level student on the topic: "${topic}". The student has ${time} daily. 
@@ -104,6 +107,7 @@ export const generateRoadmap = async (topic: string, days: number, level: string
 
 export const explainConcept = async (topic: string): Promise<GenerateContentResponse> => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   return await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `Explain "${topic}" using the Feynman Technique. 
@@ -118,6 +122,7 @@ export const explainConcept = async (topic: string): Promise<GenerateContentResp
 
 export const summarizeNotes = async (text: string): Promise<GenerateContentResponse> => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   return await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `Summarize the following study notes:
@@ -131,6 +136,7 @@ export const summarizeNotes = async (text: string): Promise<GenerateContentRespo
 
 export const generateQuiz = async (topic: string) => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `Generate a 10-question multiple choice quiz about "${topic}". Challenge the student but remain within reasonable scope. Make the questions deep and conceptual.` }] }],
@@ -156,6 +162,7 @@ export const generateQuiz = async (topic: string) => {
 
 export const getCoachAdvice = async () => {
   const ai = getClient();
+  if (!ai) return { motivation: "API Key missing. Please configure Vercel settings.", suggestion: "Setup environment variables", revisionTip: "Check documentation" };
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: "Act as Rasineni's Personal Learning Coach. Provide: 1. A punchy motivational quote. 2. A specific 'Skill of the Day' recommendation. 3. A high-impact revision tip (like Spaced Repetition or Active Recall)." }] }],
@@ -177,6 +184,7 @@ export const getCoachAdvice = async () => {
 
 export const generateExplanationStream = async (query: string) => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   return await ai.models.generateContentStream({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: query }] }],
@@ -188,6 +196,7 @@ export const generateExplanationStream = async (query: string) => {
 
 export const generateExplanation = async (query: string): Promise<GenerateContentResponse> => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   return await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: query }] }],
@@ -199,6 +208,7 @@ export const generateExplanation = async (query: string): Promise<GenerateConten
 
 export const generateVisualConcept = async (concept: string) => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
@@ -230,6 +240,7 @@ export const generateVisualConcept = async (concept: string) => {
 
 export const generateVideoLesson = async (prompt: string, onStatus: (msg: string) => void) => {
   const ai = getClient();
+  if (!ai) throw new Error("API Key is missing.");
   onStatus("Initiating video generation pipeline...");
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
