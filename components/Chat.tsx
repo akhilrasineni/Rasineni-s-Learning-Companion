@@ -38,21 +38,19 @@ const Chat: React.FC = () => {
         const chunkText = chunk.text || "";
         currentResponseText += chunkText;
         
-        // Update the last message in state with the cumulative text
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMsg = newMessages[newMessages.length - 1];
           if (lastMsg && lastMsg.role === 'model') {
             lastMsg.text = currentResponseText;
             
-            // If the chunk contains grounding metadata, update the sources
             const groundingMetadata = chunk.candidates?.[0]?.groundingMetadata;
             if (groundingMetadata?.groundingChunks) {
               const chunks = groundingMetadata.groundingChunks;
               const sources = chunks
                 .filter((c: any) => c.web && c.web.uri)
                 .map((c: any) => ({
-                  web: { uri: c.web.uri, title: c.web.title || 'Verified Source' }
+                  web: { uri: c.web.uri, title: c.web.title || 'Source' }
                 }));
               
               if (sources.length > 0) {
@@ -65,26 +63,12 @@ const Chat: React.FC = () => {
       }
     } catch (error: any) {
       console.error('AI Research Error:', error);
-      
-      let displayMessage = "I'm having trouble connecting to the research database right now.";
-      
-      if (error?.message?.includes('429') || error?.message?.includes('quota')) {
-        displayMessage = "Research limit exceeded for today. Please wait a few minutes or try again later (API Quota Exhausted).";
-      } else if (error?.message) {
-        displayMessage = `Error: ${error.message}`;
-      }
-
+      let displayMessage = "I'm having trouble connecting right now.";
       setMessages(prev => {
         const newMessages = [...prev];
         const lastMsg = newMessages[newMessages.length - 1];
         if (lastMsg && lastMsg.role === 'model' && !lastMsg.text) {
           lastMsg.text = displayMessage;
-        } else if (!lastMsg || lastMsg.role === 'user') {
-           newMessages.push({
-             role: 'model',
-             text: displayMessage,
-             timestamp: Date.now()
-           });
         }
         return newMessages;
       });
@@ -94,31 +78,31 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] md:h-[calc(100vh-14rem)] w-full max-w-5xl mx-auto animate-fade-in relative">
+    <div className="flex flex-col h-[calc(100vh-14rem)] md:h-[calc(100vh-16rem)] w-full max-w-5xl mx-auto animate-fade-in relative px-2">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto space-y-6 mb-4 px-2 md:px-6 custom-scrollbar pb-10" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 mb-4 px-1 md:px-6 custom-scrollbar pb-10" ref={scrollRef}>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-90 py-10">
-            <div className="w-24 h-24 bg-gradient-to-br from-indigo-50 to-rose-50 text-indigo-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-indigo-100 border border-indigo-50">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-90 py-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-rose-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-lg border border-indigo-50">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">AI Researcher</h2>
-              <p className="text-slate-500 max-w-md mx-auto text-lg font-medium">Deep-search any topic. I verify every answer with live web results.</p>
+            <div className="space-y-1">
+              <h2 className="text-2xl md:text-5xl font-black text-slate-900 tracking-tighter">Researcher</h2>
+              <p className="text-slate-500 max-w-xs mx-auto text-sm md:text-lg font-medium leading-relaxed px-4">Deep-search any topic with live verified citations.</p>
             </div>
           </div>
         )}
         {messages.map((m, idx) => (
           <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[90%] md:max-w-[80%] rounded-3xl p-5 md:p-6 shadow-xl ${
+            <div className={`max-w-[92%] md:max-w-[80%] rounded-2xl p-4 md:p-6 shadow-md ${
               m.role === 'user' 
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
                 : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
             }`}>
               {m.text ? (
-                <p className="whitespace-pre-wrap leading-relaxed text-base md:text-lg font-medium">{m.text}</p>
+                <p className="whitespace-pre-wrap leading-relaxed text-sm md:text-lg font-medium">{m.text}</p>
               ) : (
                 <div className="flex space-x-2 py-2">
                   <div className="w-2 h-2 bg-indigo-200 rounded-full animate-bounce"></div>
@@ -127,21 +111,19 @@ const Chat: React.FC = () => {
                 </div>
               )}
               {m.sources && m.sources.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em]">Verified Sources</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="mt-4 pt-3 border-t border-slate-100">
+                  <p className="text-[8px] font-black text-slate-400 mb-2 uppercase tracking-widest">Sources</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {m.sources.map((s, i) => (
                       <a 
                         key={i} 
                         href={s.web.uri} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-xs bg-slate-50 hover:bg-indigo-50 text-indigo-600 px-3 py-2 rounded-xl transition-all border border-slate-100 flex items-center gap-2 font-bold shadow-sm"
+                        className="text-[9px] md:text-xs bg-slate-50 text-indigo-600 px-2 py-1.5 rounded-lg border border-slate-100 flex items-center gap-1.5 font-bold shadow-sm"
                       >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        <span className="truncate max-w-[150px]">{s.web.title}</span>
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <span className="truncate max-w-[100px]">{s.web.title}</span>
                       </a>
                     ))}
                   </div>
@@ -150,46 +132,28 @@ const Chat: React.FC = () => {
             </div>
           </div>
         ))}
-        {loading && messages[messages.length-1]?.role === 'user' && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-slate-100 rounded-[2rem] rounded-tl-none p-5 shadow-xl">
-              <div className="flex space-x-2">
-                <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce"></div>
-                <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Input Box */}
-      <div className="sticky bottom-0 left-0 right-0 pt-4 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pb-10 md:pb-4">
-        <div className="relative group max-w-4xl mx-auto px-2">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-rose-400 to-indigo-500 rounded-[2rem] blur opacity-20 group-focus-within:opacity-50 transition duration-1000 animate-gradient-x"></div>
-          <div className="relative flex items-center bg-white/90 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border border-white/50 pr-3 h-16 md:h-20">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="What would you like to research today?"
-              className="flex-1 px-6 md:px-10 py-4 bg-transparent outline-none text-slate-800 placeholder:text-slate-400 font-bold text-lg md:text-xl"
-            />
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className={`p-3 md:p-4 rounded-2xl transition-all shadow-lg ${
-                input.trim() 
-                  ? 'bg-slate-900 text-white hover:bg-indigo-600 scale-100 active:scale-95' 
-                  : 'bg-slate-100 text-slate-300 scale-95 cursor-not-allowed'
-              }`}
-            >
-              <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </div>
+      <div className="sticky bottom-0 pt-2 bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent pb-4 md:pb-6">
+        <div className="relative flex items-center bg-white rounded-2xl md:rounded-[2rem] shadow-xl border border-slate-100 pr-2 h-14 md:h-20">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Search for something..."
+            className="flex-1 px-4 md:px-10 py-3 bg-transparent outline-none text-slate-800 placeholder:text-slate-400 font-bold text-base md:text-xl"
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className={`p-2.5 md:p-4 rounded-xl transition-all ${
+              input.trim() ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-300'
+            }`}
+          >
+            <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
         </div>
       </div>
     </div>
