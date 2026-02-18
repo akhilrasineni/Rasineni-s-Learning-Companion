@@ -175,6 +175,17 @@ export const getCoachAdvice = async () => {
   return JSON.parse(response.text || '{}');
 };
 
+export const generateExplanationStream = async (query: string) => {
+  const ai = getClient();
+  return await ai.models.generateContentStream({
+    model: 'gemini-3-flash-preview',
+    contents: [{ parts: [{ text: query }] }],
+    config: {
+      tools: [{ googleSearch: {} }],
+    },
+  });
+};
+
 export const generateExplanation = async (query: string): Promise<GenerateContentResponse> => {
   const ai = getClient();
   return await ai.models.generateContent({

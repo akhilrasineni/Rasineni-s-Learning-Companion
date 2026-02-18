@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { generateExplanation } from '../services/gemini';
+import { generateExplanationStream } from '../services/gemini';
 import { ChatMessage } from '../types';
 
 const Chat: React.FC = () => {
@@ -22,26 +22,47 @@ const Chat: React.FC = () => {
     setInput('');
     setLoading(true);
 
-    try {
-      const response = await generateExplanation(input);
-      
-      const responseText = response.text || "I found some information, but I couldn't summarize it into text. Please check the sources below.";
-      
-      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-      const chunks = groundingMetadata?.groundingChunks || [];
-      const sources = chunks
-        .filter((chunk: any) => chunk.web && chunk.web.uri)
-        .map((chunk: any) => ({
-          web: { uri: chunk.web.uri, title: chunk.web.title || 'Verified Source' }
-        }));
+    let currentResponseText = '';
+    const modelMsgPlaceholder: ChatMessage = {
+      role: 'model',
+      text: '',
+      timestamp: Date.now()
+    };
+    
+    setMessages(prev => [...prev, modelMsgPlaceholder]);
 
-      const modelMsg: ChatMessage = {
-        role: 'model',
-        text: responseText,
-        timestamp: Date.now(),
-        sources: sources.length > 0 ? sources : undefined
-      };
-      setMessages(prev => [...prev, modelMsg]);
+    try {
+      const resultStream = await generateExplanationStream(input);
+      
+      for await (const chunk of resultStream) {
+        const chunkText = chunk.text || "";
+        currentResponseText += chunkText;
+        
+        // Update the last message in state with the cumulative text
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMsg = newMessages[newMessages.length - 1];
+          if (lastMsg && lastMsg.role === 'model') {
+            lastMsg.text = currentResponseText;
+            
+            // If the chunk contains grounding metadata, update the sources
+            const groundingMetadata = chunk.candidates?.[0]?.groundingMetadata;
+            if (groundingMetadata?.groundingChunks) {
+              const chunks = groundingMetadata.groundingChunks;
+              const sources = chunks
+                .filter((c: any) => c.web && c.web.uri)
+                .map((c: any) => ({
+                  web: { uri: c.web.uri, title: c.web.title || 'Verified Source' }
+                }));
+              
+              if (sources.length > 0) {
+                lastMsg.sources = sources;
+              }
+            }
+          }
+          return newMessages;
+        });
+      }
     } catch (error: any) {
       console.error('AI Research Error:', error);
       
@@ -53,12 +74,20 @@ const Chat: React.FC = () => {
         displayMessage = `Error: ${error.message}`;
       }
 
-      const errorMsg: ChatMessage = {
-        role: 'model',
-        text: displayMessage,
-        timestamp: Date.now()
-      };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMsg = newMessages[newMessages.length - 1];
+        if (lastMsg && lastMsg.role === 'model' && !lastMsg.text) {
+          lastMsg.text = displayMessage;
+        } else if (!lastMsg || lastMsg.role === 'user') {
+           newMessages.push({
+             role: 'model',
+             text: displayMessage,
+             timestamp: Date.now()
+           });
+        }
+        return newMessages;
+      });
     } finally {
       setLoading(false);
     }
@@ -88,7 +117,15 @@ const Chat: React.FC = () => {
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
                 : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
             }`}>
-              <p className="whitespace-pre-wrap leading-relaxed text-base md:text-lg font-medium">{m.text}</p>
+              {m.text ? (
+                <p className="whitespace-pre-wrap leading-relaxed text-base md:text-lg font-medium">{m.text}</p>
+              ) : (
+                <div className="flex space-x-2 py-2">
+                  <div className="w-2 h-2 bg-indigo-200 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-indigo-200 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-2 h-2 bg-indigo-200 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+              )}
               {m.sources && m.sources.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em]">Verified Sources</p>
@@ -113,7 +150,7 @@ const Chat: React.FC = () => {
             </div>
           </div>
         ))}
-        {loading && (
+        {loading && messages[messages.length-1]?.role === 'user' && (
           <div className="flex justify-start">
             <div className="bg-white border border-slate-100 rounded-[2rem] rounded-tl-none p-5 shadow-xl">
               <div className="flex space-x-2">
