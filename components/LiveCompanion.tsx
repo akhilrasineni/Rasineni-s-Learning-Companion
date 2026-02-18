@@ -18,12 +18,17 @@ const LiveCompanion: React.FC = () => {
       sessionRef.current = null;
     }
     if (audioContextRef.current) {
-      audioContextRef.current.input.close();
-      audioContextRef.current.output.close();
-      audioContextRef.current.input = null as any;
-      audioContextRef.current.output = null as any;
+      if (audioContextRef.current.input.state !== 'closed') {
+        audioContextRef.current.input.close();
+      }
+      if (audioContextRef.current.output.state !== 'closed') {
+        audioContextRef.current.output.close();
+      }
+      audioContextRef.current = null;
     }
-    sourcesRef.current.forEach(s => s.stop());
+    sourcesRef.current.forEach(s => {
+      try { s.stop(); } catch (e) {}
+    });
     sourcesRef.current.clear();
     setIsActive(false);
     setIsConnecting(false);
@@ -60,7 +65,9 @@ const LiveCompanion: React.FC = () => {
               const pcmData = encodeAudio(new Uint8Array(int16.buffer));
               
               sessionPromise.then(session => {
-                session.sendRealtimeInput({ media: { data: pcmData, mimeType: 'audio/pcm;rate=16000' } });
+                if (session) {
+                  session.sendRealtimeInput({ media: { data: pcmData, mimeType: 'audio/pcm;rate=16000' } });
+                }
               });
             };
 
@@ -68,13 +75,18 @@ const LiveCompanion: React.FC = () => {
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (msg: LiveServerMessage) => {
-            const audioData = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-            if (audioData) {
-              const nextStartTime = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
-              const buffer = await decodeAudioData(decodeBase64(audioData), outputCtx, 24000, 1);
-              const source = outputCtx.createBufferSource();
+            // Safer access to audio data to satisfy TS strict checks
+            const parts = msg.serverContent?.modelTurn?.parts;
+            const audioPart = parts && parts.length > 0 ? parts[0] : null;
+            const audioData = audioPart?.inlineData?.data;
+
+            if (audioData && audioContextRef.current) {
+              const outCtx = audioContextRef.current.output;
+              const nextStartTime = Math.max(nextStartTimeRef.current, outCtx.currentTime);
+              const buffer = await decodeAudioData(decodeBase64(audioData), outCtx, 24000, 1);
+              const source = outCtx.createBufferSource();
               source.buffer = buffer;
-              source.connect(outputCtx.destination);
+              source.connect(outCtx.destination);
               source.addEventListener('ended', () => sourcesRef.current.delete(source));
               source.start(nextStartTime);
               nextStartTimeRef.current = nextStartTime + buffer.duration;
@@ -82,19 +94,26 @@ const LiveCompanion: React.FC = () => {
             }
 
             if (msg.serverContent?.outputTranscription) {
-               setTranscription(prev => [...prev.slice(-4), `AI: ${msg.serverContent!.outputTranscription!.text}`]);
+               const text = msg.serverContent.outputTranscription.text;
+               setTranscription(prev => [...prev.slice(-4), `AI: ${text}`]);
             }
             if (msg.serverContent?.inputTranscription) {
-               setTranscription(prev => [...prev.slice(-4), `You: ${msg.serverContent!.inputTranscription!.text}`]);
+               const text = msg.serverContent.inputTranscription.text;
+               setTranscription(prev => [...prev.slice(-4), `You: ${text}`]);
             }
 
             if (msg.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.forEach(s => {
+                try { s.stop(); } catch (e) {}
+              });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
           },
-          onerror: () => stopSession(),
+          onerror: (e) => {
+            console.error('Live API Error:', e);
+            stopSession();
+          },
           onclose: () => stopSession()
         },
         config: {
@@ -108,13 +127,13 @@ const LiveCompanion: React.FC = () => {
 
       sessionRef.current = await sessionPromise;
     } catch (err) {
-      console.error(err);
+      console.error('Failed to start session:', err);
       setIsConnecting(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full space-y-12">
+    <div className="flex flex-col items-center justify-center h-full space-y-12 animate-fade-in">
       <div className="relative">
         <div className={`w-48 h-48 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${
           isActive ? 'border-indigo-500 bg-indigo-50 scale-110 shadow-xl shadow-indigo-200' : 'border-slate-200 bg-slate-50'
@@ -136,17 +155,17 @@ const LiveCompanion: React.FC = () => {
         )}
       </div>
 
-      <div className="text-center space-y-4">
-        <h2 className="text-2xl font-bold text-slate-800">{isActive ? 'I\'m listening...' : 'Ready to talk?'}</h2>
-        <p className="text-slate-500 max-w-sm">Have a real-time conversation about any subject. Just speak naturally like you would with a tutor.</p>
+      <div className="text-center space-y-4 px-4">
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">{isActive ? 'I\'m listening...' : 'Ready to talk?'}</h2>
+        <p className="text-slate-500 max-w-sm mx-auto font-medium">Have a real-time conversation about any subject. Just speak naturally like you would with a tutor.</p>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-slate-100 min-h-[160px] flex flex-col justify-end space-y-2">
+      <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-slate-100 min-h-[160px] flex flex-col justify-end space-y-2 mx-4">
         {transcription.length === 0 ? (
           <p className="text-slate-300 text-sm text-center italic">Transcription will appear here...</p>
         ) : (
           transcription.map((t, i) => (
-            <p key={i} className={`text-sm ${t.startsWith('You:') ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}>{t}</p>
+            <p key={i} className={`text-sm ${t.startsWith('You:') ? 'text-indigo-600 font-bold' : 'text-slate-600 font-medium'}`}>{t}</p>
           ))
         )}
       </div>
@@ -154,7 +173,7 @@ const LiveCompanion: React.FC = () => {
       <button
         onClick={isActive ? stopSession : startSession}
         disabled={isConnecting}
-        className={`px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-3 ${
+        className={`px-10 py-5 rounded-full font-black text-lg shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-3 ${
           isActive ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'
         } ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
       >

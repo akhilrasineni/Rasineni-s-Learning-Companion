@@ -25,15 +25,16 @@ const Chat: React.FC = () => {
 
     try {
       const response = await generateExplanation(input);
-      const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      const sources = chunks?.map((chunk: any) => ({
         web: { uri: chunk.web?.uri || '', title: chunk.web?.title || 'Source' }
-      })).filter((s: any) => s.web.uri);
+      })).filter((s: any) => s.web.uri) || [];
 
       const modelMsg: ChatMessage = {
         role: 'model',
         text: response.text || "I'm sorry, I couldn't process that. Please try again.",
         timestamp: Date.now(),
-        sources
+        sources: sources.length > 0 ? sources : undefined
       };
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
@@ -111,7 +112,7 @@ const Chat: React.FC = () => {
         )}
       </div>
 
-      {/* Input Box - Enhanced Visibility */}
+      {/* Input Box */}
       <div className="sticky bottom-0 left-0 right-0 pt-4 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pb-10 md:pb-4">
         <div className="relative group max-w-4xl mx-auto px-2">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-rose-400 to-indigo-500 rounded-[2rem] blur opacity-20 group-focus-within:opacity-50 transition duration-1000 animate-gradient-x"></div>
