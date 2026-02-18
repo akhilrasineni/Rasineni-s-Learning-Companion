@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 
-const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export function decodeBase64(base64: string) {
   const binaryString = atob(base64);
@@ -166,7 +166,7 @@ export const generateExplanation = async (query: string): Promise<GenerateConten
   const ai = getClient();
   return await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: query,
+    contents: [{ role: 'user', parts: [{ text: query }] }],
     config: {
       tools: [{ googleSearch: {} }],
     },
@@ -187,7 +187,8 @@ export const generateVisualConcept = async (concept: string) => {
   let imageUrl = '';
   let explanation = '';
   
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
+  const parts = response.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
     if (part.inlineData) {
       imageUrl = `data:image/png;base64,${part.inlineData.data}`;
     } else if (part.text) {
@@ -198,7 +199,7 @@ export const generateVisualConcept = async (concept: string) => {
 };
 
 export const generateVideoLesson = async (prompt: string, onStatus: (msg: string) => void) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   onStatus("Initiating video generation pipeline...");
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',

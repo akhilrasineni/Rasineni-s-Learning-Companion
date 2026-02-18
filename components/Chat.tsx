@@ -25,6 +25,10 @@ const Chat: React.FC = () => {
 
     try {
       const response = await generateExplanation(input);
+      
+      // Safety check for response.text
+      const responseText = response.text || "I found some information, but I couldn't summarize it properly. Please try rephrasing.";
+      
       const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
       const sources = chunks?.map((chunk: any) => ({
         web: { uri: chunk.web?.uri || '', title: chunk.web?.title || 'Source' }
@@ -32,16 +36,22 @@ const Chat: React.FC = () => {
 
       const modelMsg: ChatMessage = {
         role: 'model',
-        text: response.text || "I'm sorry, I couldn't process that. Please try again.",
+        text: responseText,
         timestamp: Date.now(),
         sources: sources.length > 0 ? sources : undefined
       };
       setMessages(prev => [...prev, modelMsg]);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      // Log full error details for debugging (visible in browser inspect console)
+      console.error('AI Research Error Details:', error);
+      
+      const errorMessage = error?.message?.includes('API_KEY') 
+        ? "The API key is missing or invalid. Please check your environment variables." 
+        : "I encountered an error while searching for the answer. Please check your connection or try again in a moment.";
+
       const errorMsg: ChatMessage = {
         role: 'model',
-        text: "I encountered an error while searching for the answer. Please check your connection.",
+        text: errorMessage,
         timestamp: Date.now()
       };
       setMessages(prev => [...prev, errorMsg]);
