@@ -1,0 +1,8 @@
+{
+  "name": "Rasineni's Learning Companion",
+  "description": "An advanced AI-powered educational ecosystem designed to empower students through interactive voice sessions, visual concept generation, personalized quizzes, and AI-driven video explanations.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
