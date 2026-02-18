@@ -71,15 +71,15 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
   if (quiz.length > 0 && !finished) {
     const q = quiz[currentIdx];
     return (
-      <div className="max-w-4xl mx-auto px-1 animate-fade-in flex flex-col min-h-full overflow-x-hidden">
+      <div className="max-w-4xl mx-auto px-1 animate-fade-in flex flex-col min-h-full overflow-hidden">
         <div className="flex justify-between items-center mb-6 gap-3">
           <div className="flex flex-col flex-shrink-0">
-            <span className="text-[8px] md:text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">Assessment</span>
+            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">Assessment</span>
             <span className="text-slate-900 font-black text-sm md:text-xl">{currentIdx + 1} / {quiz.length}</span>
           </div>
-          <div className="flex space-x-1 flex-1 max-w-[150px] md:max-w-[400px]">
+          <div className="flex space-x-1.5 flex-1 max-w-[140px] md:max-w-[400px]">
              {quiz.map((_, i) => (
-               <div key={i} className={`h-1 md:h-2 rounded-full flex-1 transition-all ${
+               <div key={i} className={`h-1.5 md:h-2 rounded-full flex-1 transition-all ${
                  i < currentIdx ? 'bg-indigo-200' : 
                  i === currentIdx ? 'bg-indigo-600' : 
                  'bg-slate-200'
@@ -94,7 +94,7 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
               {q.question}
             </h3>
 
-            <div className="grid grid-cols-1 gap-3 md:gap-5">
+            <div className="flex flex-col gap-3 md:gap-5">
               {q.options.map((opt, i) => {
                 let style = 'border-slate-100 bg-slate-50/50 hover:border-indigo-300';
                 if (showResult) {
@@ -107,11 +107,11 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
                     key={i}
                     disabled={showResult}
                     onClick={() => handleAnswer(i)}
-                    className={`p-4 md:p-8 rounded-xl md:rounded-2xl border-2 text-left transition-all font-bold text-[11px] md:text-xl flex items-center justify-between group active:scale-[0.98] ${style}`}
+                    className={`p-4 md:p-8 rounded-xl md:rounded-2xl border-2 text-left transition-all font-bold text-[11px] md:text-xl flex items-center justify-between group active:scale-[0.98] w-full min-h-[56px] md:min-h-0 ${style}`}
                   >
                     <span className="flex-1 pr-3 break-words leading-relaxed">{opt}</span>
                     {showResult && i === q.correctAnswer && (
-                      <div className="bg-green-500 p-1 rounded-full text-white flex-shrink-0">
+                      <div className="bg-green-500 p-1.5 rounded-full text-white flex-shrink-0">
                         <svg className="w-3 h-3 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                       </div>
                     )}
@@ -125,7 +125,7 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
         {showResult && (
           <div className="p-6 md:p-12 bg-indigo-600 rounded-[2rem] md:rounded-[3rem] text-white shadow-2xl animate-fade-in space-y-6 mb-12">
             <div className="space-y-2">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-60 leading-none">Insight</span>
+              <span className="text-[9px] font-black uppercase tracking-widest opacity-60 leading-none">Perspective</span>
               <p className="text-xs md:text-2xl font-medium leading-relaxed break-words">
                 {q.explanation}
               </p>
@@ -134,7 +134,7 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
               onClick={nextQuestion}
               className="w-full bg-white text-indigo-600 py-4 md:py-6 rounded-xl md:rounded-2xl font-black text-sm md:text-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95"
             >
-              <span>{currentIdx === quiz.length - 1 ? 'Finish Assessment' : 'Next Question'}</span>
+              <span>{currentIdx === quiz.length - 1 ? 'Finish Challenge' : 'Next Question'}</span>
               <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
           </div>
@@ -147,11 +147,11 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
     const percent = Math.round((score / quiz.length) * 100);
     const feedback = getFeedback(percent);
     return (
-      <div className="max-w-2xl mx-auto py-4 px-1 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto py-4 px-1 overflow-hidden">
         <div className="w-full bg-white rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 shadow-2xl border border-slate-100 text-center space-y-10 animate-fade-in">
           
           <div className="relative inline-flex items-center justify-center">
-            <svg className="w-32 h-32 md:w-64 md:h-64 transform -rotate-90">
+            <svg className="w-36 h-36 md:w-64 md:h-64 transform -rotate-90">
               <circle cx="50%" cy="50%" r="42%" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-50" />
               <circle 
                 cx="50%" cy="50%" r="42%" 
@@ -164,14 +164,14 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center flex-col">
-              <span className="text-3xl md:text-7xl font-black text-slate-900 leading-none">{percent}%</span>
-              <span className="text-[9px] md:text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Proficiency</span>
+              <span className="text-4xl md:text-7xl font-black text-slate-900 leading-none">{percent}%</span>
+              <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Mastery</span>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="text-xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight break-words">{feedback.title}</h2>
-            <p className="text-xs md:text-xl text-slate-500 font-medium leading-relaxed max-w-sm mx-auto break-words">
+          <div className="space-y-4">
+            <h2 className="text-2xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight break-words">{feedback.title}</h2>
+            <p className="text-xs md:text-xl text-slate-500 font-medium leading-relaxed max-w-sm mx-auto break-words px-4">
               {feedback.message}
             </p>
           </div>
@@ -180,7 +180,7 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
             onClick={() => { setQuiz([]); setTopic(''); setFinished(false); }}
             className="w-full bg-slate-900 text-white py-4 md:py-8 rounded-2xl md:rounded-3xl font-black text-sm md:text-2xl hover:bg-indigo-600 transition-all shadow-xl active:scale-95"
           >
-            Start New Mission
+            New Challenge
           </button>
         </div>
       </div>
@@ -188,17 +188,17 @@ const QuizMaster: React.FC<QuizMasterProps> = ({ user }) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 py-6 px-1 overflow-x-hidden">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 py-6 px-1 overflow-hidden">
       <div className="text-center space-y-4 max-w-2xl px-2">
-        <h2 className="text-3xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight break-words">Assessment Lab</h2>
+        <h2 className="text-3xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight break-words">Knowledge Mastery</h2>
         <p className="text-sm md:text-2xl font-medium text-slate-500 leading-relaxed max-w-md mx-auto">
-          Challenge yourself. Enter any topic to generate a personalized knowledge check.
+          Deep-concept assessments tailored to your curiosity. What shall we master?
         </p>
       </div>
 
       <div className="w-full max-w-xl bg-white p-6 md:p-16 rounded-[2rem] md:rounded-[3rem] shadow-xl border border-slate-100 space-y-8">
         <div className="space-y-2">
-          <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Topic</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Enter Topic</label>
           <input
             type="text"
             value={topic}

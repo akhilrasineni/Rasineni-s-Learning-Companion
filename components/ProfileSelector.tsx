@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { getProfileNames, deleteUser } from '../services/storage';
+import { getProfileNames } from '../services/storage';
 
 interface ProfileSelectorProps {
   onSelectUser: (name: string) => void;
@@ -8,7 +7,7 @@ interface ProfileSelectorProps {
 
 const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onSelectUser }) => {
   const [nameInput, setNameInput] = useState('');
-  const [profiles, setProfiles] = useState(getProfileNames());
+  const [profiles] = useState(getProfileNames());
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,79 +16,122 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({ onSelectUser }) => {
     }
   };
 
-  const handleDelete = (e: React.MouseEvent, name: string) => {
-    e.stopPropagation();
-    if (confirm(`Delete ${name}'s data permanently?`)) {
-      deleteUser(name);
-      setProfiles(getProfileNames());
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-rose-50">
-      <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-        
-        <div className="space-y-6 md:space-y-8 text-center md:text-left animate-fade-in">
-          <div className="inline-block p-3 md:p-4 bg-white rounded-3xl shadow-2xl shadow-indigo-100 mb-2 md:mb-4 border border-indigo-50 transform -rotate-2">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-600 to-rose-500 rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl font-black">R</div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 transition-colors duration-500 overflow-hidden font-sans">
+      {/* Background Ambient Orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 dark:bg-indigo-500/[0.03] rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-500/10 dark:bg-rose-500/[0.03] rounded-full blur-[120px] animate-pulse [animation-delay:2s]"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-4xl flex flex-col items-center space-y-8 md:space-y-12">
+        {/* Branding Header */}
+        <div className="text-center space-y-4 animate-fade-in">
+          <div className="inline-flex items-center justify-center p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-rose-500 rounded-xl flex items-center justify-center text-white text-2xl font-black">R</div>
           </div>
-          <h1 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tighter leading-none">
-            Rasineni's <br/>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-rose-500">Learning Companion</span>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100 leading-none">
+            Learning <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-rose-500">Companion</span>
           </h1>
-          <p className="text-base md:text-lg text-slate-500 font-medium max-w-md mx-auto md:mx-0">
-            Your personal AI ecosystem for mastering any subject. Choose your profile to continue your journey.
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-lg max-w-md mx-auto">
+            Your personalized AI ecosystem for deep research, voice tutoring, and roadmap mastery.
           </p>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-slate-100 space-y-8 md:space-y-10">
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Who's Learning Today?</h2>
-            {profiles.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                {profiles.map((name) => (
-                  <button
-                    key={name}
-                    onClick={() => onSelectUser(name)}
-                    className="group relative p-4 md:p-6 bg-white rounded-2xl border-2 border-slate-100 hover:border-indigo-600 transition-all text-left shadow-sm hover:shadow-md hover:-translate-y-1"
-                  >
-                    <span className="block font-black text-slate-800 text-base md:text-lg truncate">{name}</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">Student</span>
-                    <div 
-                      onClick={(e) => handleDelete(e, name)}
-                      className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
-                    </div>
-                  </button>
-                ))}
+        {/* Main Interface Card */}
+        <div className="w-full bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] md:rounded-[3.5rem] p-6 md:p-12 shadow-2xl dark:shadow-none border border-slate-100 dark:border-slate-800 animate-fade-in">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            
+            {/* Left: Profile Selection */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Select Profile</h3>
+                <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">{profiles.length} Active</span>
               </div>
-            ) : (
-              <p className="text-slate-400 italic text-sm">No profiles found. Create your first one below!</p>
-            )}
-          </div>
-
-          <form onSubmit={handleCreate} className="space-y-4 pt-6 border-t border-slate-100">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">New Profile Name</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="Enter your name..."
-                className="flex-1 px-5 md:px-6 py-3 md:py-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
-              />
-              <button
-                type="submit"
-                disabled={!nameInput.trim()}
-                className="bg-indigo-600 text-white px-6 md:px-8 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:bg-slate-300 active:scale-95"
-              >
-                Go
-              </button>
+              
+              <div className="space-y-3 max-h-[280px] overflow-y-auto custom-scrollbar pr-2">
+                {profiles.length > 0 ? (
+                  profiles.map((name) => (
+                    <button
+                      key={name}
+                      onClick={() => onSelectUser(name)}
+                      className="w-full group p-4 md:p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-transparent hover:border-indigo-500/50 dark:hover:border-indigo-500/30 hover:bg-white dark:hover:bg-slate-800 transition-all text-left flex items-center justify-between shadow-sm"
+                    >
+                      <div className="flex items-center space-x-4 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-sm">
+                          {name[0].toUpperCase()}
+                        </div>
+                        <span className="font-black text-slate-900 dark:text-slate-100 text-lg truncate">{name}</span>
+                      </div>
+                      <svg className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transform group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ))
+                ) : (
+                  <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl text-slate-400 dark:text-slate-600">
+                    <svg className="w-10 h-10 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <p className="text-xs font-bold italic">No local profiles yet</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </form>
+
+            {/* Right: New Profile / Features */}
+            <div className="flex flex-col justify-between space-y-8">
+              <div className="space-y-6">
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">New Identity</h3>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder="Your Name"
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-inner"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!nameInput.trim()}
+                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-black text-lg hover:bg-indigo-600 dark:hover:bg-indigo-400 hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Launch Companion
+                  </button>
+                </form>
+              </div>
+
+              {/* Quick Feature Pills */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest leading-none">Powered Intelligence</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Voice Tutor', icon: 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-20a3 3 0 013 3v10a3 3 0 01-3 33 3 0 01-3-3V5a3 3 0 013-3z' },
+                    { label: 'Deep Research', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+                    { label: 'Visual Studio', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14' }
+                  ].map((f) => (
+                    <div key={f.label} className="flex items-center space-x-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <svg className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={f.icon}/></svg>
+                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
+        {/* Minimal Tech Footer */}
+        <div className="flex flex-col items-center space-y-4 pt-4 opacity-50 hover:opacity-100 transition-opacity">
+          <div className="flex items-center space-x-6">
+            {['React 19', 'Gemini 3', 'Veo', 'Tailwind'].map((tech) => (
+              <span key={tech} className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">{tech}</span>
+            ))}
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600">Built by Rasineni • 2025 Ecosystem</p>
+        </div>
       </div>
     </div>
   );
